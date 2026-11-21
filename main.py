@@ -9,7 +9,7 @@ every run.
 Concept: the Republic of Kalnara, an archipelago that runs on ferries.
 Holder Mara Elena Ilves, ferry captain of Port Anselm. Her passport
 carries a proper ICAO MRZ, a photorealistic studio portrait, a
-bilingual masthead, eight stamps (six neighbours plus Kalnara exit/entry)
+English-only masthead, eight stamps (six neighbours plus Kalnara exit/entry)
 that form a plausible ferry-hopping history after the issue date, a neighbour
 visitor visa, a dated Anselm Strait endorsement, and a round passage-fee stamp.
 """
@@ -646,9 +646,7 @@ def build():
     _circle(cv, 258, 48, 16, NAVY, 2)
     draw_anchor(cv, 258, 48, 20, NAVY, 2)
     draw_centered(cv, "serif_bold", 22, 258, 70, "REPUBLIC OF KALNARA", INK)
-    draw_tracked(cv, "sans", 10, 152, 94, "KALNARAS REPUBLIKA",
-                 GOLD_DARK, 12.5)
-    draw_tracked(cv, "sans", 11, 137, 108, "PASSPORT / PASPORT",
+    draw_tracked(cv, "sans", 11, 204, 94, "PASSPORT",
                  GOLD_DARK, 13.5)
     cv.line(38, 122, 478, 122, GOLD, 2)
     # photo (photorealistic studio portrait, composited from portrait.rgb)
@@ -658,23 +656,23 @@ def build():
     # cursive signature under the photo
     draw_signature_cursive(cv, 40, 336)
     draw_text(cv, "sans", 8, 40, 354, "SIGNATURE OF HOLDER", GREY)
-    # data fields (Indonesian / English bilingual labels)
+    # data fields (English labels)
     fx = 206
-    field(cv, fx, 134, "TIPE / TYPE", "P", 14)
-    field(cv, fx + 56, 134, "KODE / CODE", "KAL", 14)
-    field(cv, fx + 126, 134, "NO. PASPOR / PASSPORT NO.", "KAL041883", 14)
-    field(cv, fx, 164, "NAMA KELUARGA / SURNAME", "ILVES")
-    field(cv, fx, 194, "NAMA DEPAN / GIVEN NAMES", "MARA ELENA")
-    field(cv, fx, 224, "KEWARGANEGARAAN / NATIONALITY", "KALNARAN")
-    field(cv, fx, 254, "TANGGAL LAHIR / DATE OF BIRTH", "14 MAR 1988")
-    field(cv, fx + 196, 254, "KELAMIN / SEX", "F")
-    field(cv, fx, 284, "TEMPAT LAHIR / PLACE OF BIRTH", "PORT ANSELM")
-    draw_text(cv, "sans", 8, 372, 284, "NO. PRIBADI / PERSONAL NO.", GREY)
+    field(cv, fx, 134, "TYPE", "P", 14)
+    field(cv, fx + 56, 134, "CODE", "KAL", 14)
+    field(cv, fx + 126, 134, "PASSPORT NO.", "KAL041883", 14)
+    field(cv, fx, 164, "SURNAME", "ILVES")
+    field(cv, fx, 194, "GIVEN NAMES", "MARA ELENA")
+    field(cv, fx, 224, "NATIONALITY", "KALNARAN")
+    field(cv, fx, 254, "DATE OF BIRTH", "14 MAR 1988")
+    field(cv, fx + 196, 254, "SEX", "F")
+    field(cv, fx, 284, "PLACE OF BIRTH", "PORT ANSELM")
+    draw_text(cv, "sans", 8, 372, 284, "PERSONAL NO.", GREY)
     draw_text(cv, "serif_bold", 13, 372, 295, "KAL-880314-07", INK)
-    field(cv, fx, 314, "TGL TERBIT / DATE OF ISSUE", "02 JAN 2024")
-    field(cv, fx + 150, 314, "TGL BERAKHIR / EXPIRY", "02 JAN 2034")
-    field(cv, fx, 344, "OTORITAS / AUTHORITY", "PORT ANSELM")
-    field(cv, fx, 374, "PEKERJAAN / OCCUPATION", "FERRY CAPTAIN")
+    field(cv, fx, 314, "DATE OF ISSUE", "02 JAN 2024")
+    field(cv, fx + 150, 314, "DATE OF EXPIRY", "02 JAN 2034")
+    field(cv, fx, 344, "AUTHORITY", "PORT ANSELM")
+    field(cv, fx, 374, "OCCUPATION", "FERRY CAPTAIN")
     # observations + ghost portrait
     draw_text(cv, "sans_bold", 10, 38, 404, "OBSERVATIONS", NAVY)
     text_block(cv, "serif", 12, 38, 418,
