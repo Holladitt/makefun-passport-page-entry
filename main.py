@@ -711,19 +711,19 @@ def build():
     # round passage-fee stamp overlapping the endorsement box corner
     draw_round_stamp(cv, 945, 108, 36, (150, 60, 40),
                      [(7, "PASS TOLL"), (10, "12 KRD"),
-                      (8, "PAID - ANSELM"), (7, "03 JUN 2024")])
+                      (7, "PAID - ANSELM"), (7, "03 JUN 2024")])
     # neighbour visitor visa sticker box
     cv.rect(546, 204, 986, 292, fill=(232, 238, 222), outline=NAVY, width=2)
     draw_text(cv, "sans_bold", 11, 562, 210, "SELVANE - VISITOR VISA", NAVY)
     draw_text(cv, "sans_bold", 10, 850, 211, "No. SLV 904 117",
               (150, 60, 40))
-    vfield(cv, 562, 224, "TYPE", "C - SINGLE ENTRY")
-    vfield(cv, 562, 240, "VALID FROM", "01 MAR 2024")
-    vfield(cv, 562, 256, "ISSUED AT", "PORT ANSELM, 20 FEB 2024")
-    vfield(cv, 768, 224, "DURATION OF STAY", "30 DAYS")
-    vfield(cv, 768, 240, "UNTIL", "31 MAY 2024")
-    vfield(cv, 768, 256, "FEE", "25 SLV")
-    draw_barcode(cv, 562, 279, 338, 8, "SLV904117")
+    vfield(cv, 562, 222, "TYPE", "C - SINGLE ENTRY")
+    vfield(cv, 562, 242, "VALID FROM", "01 MAR 2024")
+    vfield(cv, 562, 262, "ISSUED AT", "PORT ANSELM, 20 FEB 2024")
+    vfield(cv, 768, 222, "DURATION OF STAY", "30 DAYS")
+    vfield(cv, 768, 242, "UNTIL", "31 MAY 2024")
+    vfield(cv, 768, 262, "FEE", "25 SLV")
+    draw_barcode(cv, 562, 283, 338, 8, "SLV904117")
     # 8 stamps, 2-column grid, alternating shapes and ink colours
     draw_stamp(cv, 546, 300, 746, 372, -3, (36, 84, 160), "KALNARA",
                "EXIT", "15 MAR 2024", "PORT ANSELM")
@@ -732,14 +732,14 @@ def build():
     draw_stamp(cv, 546, 380, 746, 452, 3, (110, 60, 140), "DRAKMOOR",
                "DEPARTURE", "02 APR 2024", "HARBOUR GATE")
     draw_round_stamp(cv, 868, 416, 34, (34, 110, 70),
-                     [(7, "ILYNDOR"), (9, "ADMITTED"), (8, "21 JUN 2024"),
+                     [(7, "ILYNDOR"), (8, "ADMITTED"), (7, "21 JUN 2024"),
                       (6, "FERRY TERMINAL")], top=20)
     draw_stamp(cv, 546, 460, 746, 532, -4, (150, 60, 40), "TARNOVIA",
                "DEPARTURE", "09 SEP 2024", "NORTH PIER")
     draw_stamp(cv, 768, 460, 968, 532, 5, (30, 90, 120), "VESKARA",
                "ARRIVAL", "14 NOV 2024", "SOUTH QUAY")
-    draw_round_stamp(cv, 646, 576, 34, (120, 80, 40),
-                     [(7, "OSTARA"), (9, "DEPARTURE"), (8, "03 FEB 2025"),
+    draw_round_stamp(cv, 640, 578, 34, (120, 80, 40),
+                     [(7, "OSTARA"), (8, "DEPARTURE"), (7, "03 FEB 2025"),
                       (6, "EAST MOLE")], top=20)
     draw_stamp(cv, 768, 540, 968, 612, -3, (24, 48, 84), "KALNARA",
                "ENTRY", "05 FEB 2025", "PORT ANSELM")

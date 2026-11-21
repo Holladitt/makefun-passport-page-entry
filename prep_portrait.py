@@ -6,13 +6,13 @@ passport photo into raw RGB assets that main.py can blit with stdlib only.
 """
 from PIL import Image
 
-SRC = "media-generation-portrait-photo-0-85e0f99f-de53-4649-a2c0-db6704cb496d.png"
+SRC = "media-generation-portrait-photo-no-hat-0-feb913a5-d653-4ddc-8698-b9511c222f08.webp"
 PAPER = (247, 240, 222)
 
 im = Image.open(SRC).convert("RGB")
 print("source:", im.size)
-# head-and-shoulders crop: cap through upper chest
-crop = im.crop((0, 100, 1120, 1540))
+# head-and-shoulders crop: hair top through upper chest
+crop = im.crop((80, 170, 1200, 1610))
 print("crop:", crop.size, "aspect:", crop.size[0] / crop.size[1])
 
 photo = crop.resize((142, 182), Image.LANCZOS)
