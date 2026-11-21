@@ -718,9 +718,9 @@ def build():
                "FEB. Valid with licence C-4417.",
                INK, 340, 14)
     # round caravan-toll stamp overlapping the endorsement box corner
-    draw_round_stamp(cv, 945, 108, 36, (150, 60, 40),
-                     [(7, "CARAVAN TOLL"), (10, "9 TKD"),
-                      (7, "PAID - QARASU"), (7, "04 MAR 2024")])
+    draw_round_stamp(cv, 945, 108, 40, (150, 60, 40),
+                     [(6, "CARAVAN TOLL"), (10, "9 TKD"),
+                      (6, "PAID - QARASU"), (5, "04 MAR 2024")])
     # neighbour visitor visa sticker box
     cv.rect(546, 200, 986, 288, fill=(232, 238, 222), outline=NAVY, width=2)
     draw_text(cv, "sans_bold", 11, 562, 206, "DARQESH - VISITOR VISA", NAVY)
@@ -740,16 +740,16 @@ def build():
                "ARRIVAL", "15 AUG 2024", "MERID GATE")
     draw_stamp(cv, 546, 380, 746, 452, 3, (110, 60, 140), "DARQESH",
                "DEPARTURE", "28 AUG 2024", "MERID GATE")
-    draw_round_stamp(cv, 868, 416, 34, (34, 110, 70),
-                     [(7, "KARUN"), (8, "ADMITTED"), (7, "02 SEP 2024"),
-                      (6, "DESERT POST")], top=20)
+    draw_round_stamp(cv, 868, 416, 36, (34, 110, 70),
+                     [(7, "KARUN"), (8, "ADMITTED"), (6, "02 SEP 2024"),
+                      (5, "DESERT POST")], top=20)
     draw_stamp(cv, 546, 460, 746, 532, -4, (150, 60, 40), "KARUN",
                "DEPARTURE", "16 SEP 2024", "DESERT POST")
     draw_stamp(cv, 768, 460, 968, 532, 5, (30, 90, 120), "SARUN",
                "ENTRY", "11 MAR 2025", "CARAVAN PERMIT")
     draw_round_stamp(cv, 646, 576, 34, (24, 110, 170),
-                     [(7, "TESHMAR"), (8, "ENTRY"), (7, "20 SEP 2024"),
-                      (6, "SALT ROAD")], top=20)
+                     [(6, "TESHMAR"), (9, "ENTRY"), (6, "20 SEP 2024"),
+                      (5, "SALT ROAD")], top=20)
     draw_stamp(cv, 768, 540, 968, 612, -3, (24, 48, 84), "SARUN",
                "EXIT", "29 MAR 2025", "SALT ROAD")
     draw_text(cv, "sans", 10, 940, 606, "TS482913", GREY)
