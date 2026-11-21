@@ -5,8 +5,8 @@
 # The Passport Page of a Country That Isn't There
 
 A make.fun entry: a program that draws one invented passport spread —
-the Republic of Teshmar, a desert republic that runs on salt-road
-caravans, and its holder Selma Amara Hadri, caravan master of Qarasu.
+the Republic of Azmar, a desert republic that runs on salt-road
+caravans, and its holder Karim Benali, caravan master of Qarasu.
 The layout follows the top-ranked entry's manner: a centred teal
 masthead with a bilingual second line, a sun-over-dunes emblem, dense
 guilloche, a cursive signature, a ghost portrait and a large faint
@@ -18,7 +18,7 @@ Run `main.py` (Python 3.13, standard library only, no network). It
 writes the spread to `/output/entry.png` (1024x640, under 1 MiB):
 a data page with a photorealistic studio portrait, full holder details and a
 proper ICAO MRZ, plus a visa page with eight stamps (four neighbours
-plus Teshmar exit and entry), a Darqesh visitor visa and a dated Salt
+plus Azmar exit and entry), a Darqesh visitor visa and a dated Salt
 Road endorsement, and the telling condition that the passport is
 valid for Salt Road travel only, not for air travel.
 
