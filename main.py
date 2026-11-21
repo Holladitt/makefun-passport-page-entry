@@ -8,9 +8,10 @@ every run.
 
 Concept: the Republic of Kalnara, an archipelago that runs on ferries.
 Holder Mara Elena Ilves, ferry captain of Port Anselm. Her passport
-carries a proper ICAO MRZ, four neighbour stamps that form a
-plausible ferry-hopping history after the issue date, and one telling
-condition: valid for ferry routes only, not for air travel.
+carries a proper ICAO MRZ, a photorealistic studio portrait, a
+bilingual masthead, six neighbour stamps that form a plausible
+ferry-hopping history after the issue date, a neighbour visitor visa,
+a dated Anselm Strait endorsement, and a round passage-fee stamp.
 """
 
 import math
@@ -420,57 +421,20 @@ def draw_shield(cv, cx, cy, s, col):
     draw_anchor(cv, cx, cy - s * 0.02, s * 0.62, col, 2)
 
 
-# -------------------------------------------------------------- portrait
-def draw_portrait(cv, x0, y0, x1, y1):
-    """Document photo: ferry captain Mara Ilves, flat dignified style."""
-    cx = (x0 + x1) // 2
-    cv.gradient(x0, y0, x1 - x0, y1 - y0, SEA_TOP, SEA_BOT)
-    for wy, ww in ((y1 - 38, 2), (y1 - 26, 2), (y1 - 14, 2)):
-        pts = []
-        x = x0
-        while x <= x1:
-            pts.append((x, wy + 3 * math.sin(2 * math.pi * x / 70)))
-            x += 4
-        cv.polyline(pts, (86, 140, 180), ww)
-    # shoulders / uniform
-    cv.polygon([(x0 + 8, y1), (x0 + 20, y1 - 52), (cx - 20, y1 - 64),
-                (cx + 20, y1 - 64), (x1 - 20, y1 - 52), (x1 - 8, y1)],
-               fill=JACKET)
-    # shirt + tie
-    cv.polygon([(cx - 13, y1 - 60), (cx + 13, y1 - 60), (cx, y1 - 28)],
-               fill=(245, 245, 240))
-    cv.polygon([(cx - 4, y1 - 60), (cx + 4, y1 - 60), (cx + 3, y1 - 32),
-                (cx, y1 - 26), (cx - 3, y1 - 32)], fill=(24, 26, 34))
-    # epaulettes
-    cv.rect(x0 + 14, y1 - 56, x0 + 38, y1 - 48, fill=GOLD)
-    cv.rect(x1 - 38, y1 - 56, x1 - 14, y1 - 48, fill=GOLD)
-    # neck, ears, bun, head
-    cv.rect(cx - 10, y0 + 100, cx + 10, y0 + 128, fill=SKIN_D)
-    cv.ellipse(x0 + 34, y0 + 62, x0 + 42, y0 + 76, fill=SKIN)
-    cv.ellipse(x1 - 42, y0 + 62, x1 - 34, y0 + 76, fill=SKIN)
-    cv.disc(cx, y0 + 8, 11, HAIR)
-    cv.ellipse(cx - 38, y0 + 10, cx + 38, y0 + 62, fill=HAIR)
-    cv.ellipse(cx - 34, y0 + 20, cx + 34, y0 + 98, fill=SKIN)
-    # hair fringe over the forehead
-    pts = [(cx - 34, y0 + 52)]
-    for a in range(180, 361, 12):
-        r = math.radians(a)
-        pts.append((cx + 34 * math.cos(r), y0 + 44 + 18 * math.sin(r)))
-    pts.append((cx + 34, y0 + 52))
-    cv.polygon(pts, fill=HAIR)
-    # captain's cap
-    cv.polygon([(cx - 37, y0 + 32), (cx - 31, y0 + 12), (cx + 31, y0 + 12),
-                (cx + 37, y0 + 32)], fill=(18, 34, 66))
-    cv.ellipse(cx - 40, y0 + 26, cx + 40, y0 + 36, fill=(14, 26, 50))
-    draw_anchor(cv, cx, y0 + 21, 13, GOLD, 1)
-    # face
-    cv.line(cx - 21, y0 + 54, cx - 9, y0 + 52, HAIR, 2)
-    cv.line(cx + 9, y0 + 52, cx + 21, y0 + 54, HAIR, 2)
-    cv.ellipse(cx - 19, y0 + 60, cx - 11, y0 + 64, fill=(30, 24, 20))
-    cv.ellipse(cx + 11, y0 + 60, cx + 19, y0 + 64, fill=(30, 24, 20))
-    cv.line(cx, y0 + 64, cx - 1, y0 + 76, SKIN_D, 2)
-    cv.line(cx - 5, y0 + 77, cx + 4, y0 + 77, SKIN_D, 1)
-    cv.ellipse(cx - 7, y0 + 84, cx + 7, y0 + 88, fill=ROSE)
+# ------------------------------------------------------- raw photo assets
+def load_rgb(path, w, h):
+    """Read a raw RGB file (see prep_portrait.py) into bytes."""
+    data = open(path, "rb").read()
+    assert len(data) == w * h * 3, (path, len(data))
+    return data
+
+
+def blit_rgb(cv, data, w, h, x0, y0):
+    """Paste raw RGB pixels opaquely onto the canvas."""
+    for y in range(h):
+        base = ((y0 + y) * cv.w + x0) * 3
+        row = data[y * w * 3:(y + 1) * w * 3]
+        cv.pix[base:base + len(row)] = row
 
 
 # ---------------------------------------------------------------- stamps
@@ -501,15 +465,57 @@ def draw_stamp(cv, x0, y0, x1, y1, ang, col, country, kind, date, port):
     draw_centered(cv, "sans", 9, cx, y0 + 71, port, col)
 
 
+def draw_signature(cv, x0, y0):
+    """Cursive scrawl reading as 'Mara Ilves', with a flourish loop."""
+    pts = [(0, 4), (3, -6), (6, -9), (9, -3), (11, 5), (13, 1), (15, -5),
+           (18, -7), (20, -1), (22, 5), (24, 2), (26, -3), (28, 0),
+           (30, 5), (32, 2), (34, -4), (36, -2), (38, 4), (41, -7),
+           (44, -10), (46, -4), (48, 3), (50, 5), (53, 1), (56, -5),
+           (59, -7), (61, -1), (63, 5), (65, 2), (67, -3), (69, 0),
+           (71, 5), (74, 1), (76, -4), (79, -3), (81, 2), (83, 5),
+           (86, 1), (88, -3), (91, 0), (93, 4), (96, 2)]
+    cv.polyline([(x0 + dx, y0 + dy) for dx, dy in pts], INK, 2)
+    cv.polyline([(x0 + 2, y0 - 4), (x0 + 6, y0 - 12), (x0 + 12, y0 - 10),
+                 (x0 + 12, y0 - 2), (x0 + 6, y0 - 4)], INK, 1)
+    cv.polyline([(x0 + 6, y0 + 12), (x0 + 40, y0 + 15), (x0 + 75, y0 + 12),
+                 (x0 + 100, y0 + 8)], INK, 1)
+
+
+def _circle(cv, cx, cy, r, col, width=2):
+    pts = []
+    for a in range(0, 361, 6):
+        rad = math.radians(a)
+        pts.append((cx + r * math.cos(rad), cy + r * math.sin(rad)))
+    cv.polyline(pts, col, width)
+
+
+def draw_round_stamp(cv, cx, cy, r, col, lines):
+    """Round fee stamp: double ring with centred lines of text."""
+    _circle(cv, cx, cy, r, col, 2)
+    _circle(cv, cx, cy, r - 6, col, 1)
+    y = cy - 18
+    for size, text in lines:
+        draw_centered(cv, "sans_bold", size, cx, y, text, col)
+        y += size + 5
+
+
 # ---------------------------------------------------------------- layout
 def field(cv, x, y, label, value, vsize=15):
     draw_text(cv, "sans", 9, x, y, label, GREY)
     draw_text(cv, "serif_bold", vsize, x, y + 11, value, INK)
 
 
+def vfield(cv, x, y, label, value):
+    """Small label/value pair for the visa box (label 8px, value 11px)."""
+    draw_text(cv, "sans", 8, x, y, label, GREY)
+    draw_text(cv, "serif_bold", 11, x, y + 9, value, INK)
+
+
 def build():
-    init_fonts(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                            "fonts.bin"))
+    here = os.path.dirname(os.path.abspath(__file__))
+    init_fonts(os.path.join(here, "fonts.bin"))
+    portrait = load_rgb(os.path.join(here, "portrait.rgb"), 142, 182)
+    ghost = load_rgb(os.path.join(here, "ghost.rgb"), 70, 90)
     cv = Canvas(W, H, DESK)
     # spread pages
     cv.rect(14, 14, 502, 626, fill=PAPER)
@@ -521,20 +527,36 @@ def build():
         cv.rect(px0 + 10, 24, px0 + 478, 616, outline=GOLD, width=1)
     # faint guilloche on both pages
     for px0 in (14, 522):
-        for yb in (150, 330, 500):
+        for yb in (120, 210, 300, 390, 480, 570):
             cv.sine(px0 + 16, px0 + 472, yb, 6, 90, GUILL, 1)
+    # deterministic paper grain (drawn first, so it stays under the ink)
+    _rnd = 12345
+
+    def _next():
+        nonlocal _rnd
+        _rnd = (_rnd * 1103515245 + 12345) & 0x7FFFFFFF
+        return _rnd
+
+    for _ in range(2600):
+        nx = 20 + _next() % 980
+        ny = 20 + _next() % 600
+        if 502 <= nx <= 522:
+            continue
+        cv._set(nx, ny, (232, 225, 200) if _next() % 2 else (250, 244, 228))
     # faint watermark anchor on the right page
     draw_anchor(cv, 766, 545, 110, (228, 221, 198), 5)
 
     # ---------------------------------------------------------- left page
     draw_shield(cv, 56, 56, 34, NAVY)
-    draw_text(cv, "serif_bold", 24, 86, 36, "REPUBLIC OF KALNARA", INK)
-    draw_tracked(cv, "sans", 11, 88, 66, "PASSPORT / PASPORT",
+    draw_text(cv, "serif_bold", 23, 86, 32, "REPUBLIC OF KALNARA", INK)
+    draw_tracked(cv, "sans", 10, 88, 56, "KALNARAS REPUBLIKA",
+                 GOLD_DARK, 12.5)
+    draw_tracked(cv, "sans", 11, 88, 71, "PASSPORT / PASPORT",
                  GOLD_DARK, 13.5)
     cv.line(38, 88, 478, 88, GOLD, 2)
-    # photo
+    # photo (photorealistic studio portrait, composited from portrait.rgb)
     cv.rect(38, 102, 188, 292, fill=WHITE)
-    draw_portrait(cv, 42, 106, 184, 288)
+    blit_rgb(cv, portrait, 142, 182, 42, 106)
     cv.rect(38, 102, 188, 292, outline=NAVY, width=2)
     # data fields
     fx = 206
@@ -553,14 +575,13 @@ def build():
     field(cv, fx, 342, "OCCUPATION", "FERRY CAPTAIN")
     cv.line(38, 388, 478, 388, LGREY, 1)
     # signature + seal
-    cv.polyline([(64, 426), (72, 416), (80, 424), (88, 418), (96, 426),
-                 (104, 420), (112, 428), (120, 416), (128, 426), (136, 418),
-                 (144, 426), (152, 420), (162, 428), (172, 418), (180, 426)],
-                INK, 2)
+    draw_signature(cv, 64, 424)
     draw_text(cv, "sans", 8, 64, 446, "SIGNATURE OF HOLDER", GREY)
     cv.ring(400, 425, 30, 24, NAVY)
     draw_anchor(cv, 400, 418, 26, NAVY, 2)
     draw_centered(cv, "sans_bold", 8, 400, 438, "KALNARA", NAVY)
+    # ghost portrait watermark between signature and seal
+    blit_rgb(cv, ghost, 70, 90, 245, 398)
     # MRZ
     mrz1, mrz2 = build_mrz()
     cv.rect(38, 520, 478, 596, fill=PAPER_DIM, outline=NAVY, width=1)
@@ -573,37 +594,49 @@ def build():
     draw_tracked(cv, "sans", 10, 546, 64, "FERRY ROUTES - COASTAL DISTRICTS",
                  GOLD_DARK, 12.0)
     cv.line(546, 88, 986, 88, GOLD, 2)
+    # endorsement box: dated, place-specific ferry rules
+    cv.rect(546, 96, 986, 198, fill=PAPER, outline=NAVY, width=2)
+    draw_text(cv, "sans_bold", 11, 562, 104,
+              "ENDORSEMENT 1 / 2024 - ANSELM STRAIT", NAVY)
+    text_block(cv, "serif", 12, 562, 124,
+               "This passport is valid for ferry routes only. Crossings "
+               "of the Anselm Strait are permitted only in calm water, "
+               "1 MAY - 31 OCT. The North Route is closed during the "
+               "storm season, 1 NOV - 30 APR. Valid with ferry licence "
+               "F-1183.",
+               INK, 408, 17)
     stamps = [
-        (546, 106, -4, (36, 84, 160), "SELVANE", "ARRIVAL", "18 MAR 2024",
+        (546, 206, -4, (36, 84, 160), "SELVANE", "ARRIVAL", "18 MAR 2024",
          "PORT OF VELKIR"),
-        (768, 106, 3, (110, 60, 140), "DRAKMOOR", "DEPARTURE", "02 APR 2024",
+        (768, 206, 3, (110, 60, 140), "DRAKMOOR", "DEPARTURE", "02 APR 2024",
          "HARBOUR GATE"),
-        (546, 214, 5, (34, 110, 70), "ILYNDOR", "ARRIVAL", "21 JUN 2024",
+        (546, 298, 5, (34, 110, 70), "ILYNDOR", "ARRIVAL", "21 JUN 2024",
          "FERRY TERMINAL"),
-        (768, 214, -3, (150, 60, 40), "TARNOVIA", "DEPARTURE", "09 SEP 2024",
+        (768, 298, -3, (150, 60, 40), "TARNOVIA", "DEPARTURE", "09 SEP 2024",
          "NORTH PIER"),
+        (546, 390, 4, (30, 90, 120), "VESKARA", "ARRIVAL", "14 NOV 2024",
+         "SOUTH QUAY"),
+        (768, 390, -5, (120, 80, 40), "OSTARA", "DEPARTURE", "03 FEB 2025",
+         "EAST MOLE"),
     ]
     for x0, y0, ang, col, ctry, kind, date, port in stamps:
-        draw_stamp(cv, x0, y0, x0 + 200, y0 + 92, ang, col, ctry, kind,
+        draw_stamp(cv, x0, y0, x0 + 200, y0 + 88, ang, col, ctry, kind,
                    date, port)
-    # conditions box + fee stamp
-    cv.rect(546, 330, 986, 448, fill=PAPER, outline=NAVY, width=2)
-    draw_text(cv, "sans_bold", 12, 562, 344, "CONDITIONS OF ISSUE", NAVY)
-    text_block(cv, "serif", 13, 562, 368,
-               "This passport is valid for ferry routes only. Not valid "
-               "for air travel. The holder is a licensed master of the "
-               "Kalnara Coastal Ferry Service.",
-               INK, 408, 20)
-    fx0, fy0, fx1, fy1 = 800, 306, 968, 340
-    fcx, fcy = (fx0 + fx1) / 2, (fy0 + fy1) / 2
-    corners = [(fx0, fy0), (fx1, fy0), (fx1, fy1), (fx0, fy1)]
-    rc = [_rot(px, py, fcx, fcy, -5) for px, py in corners]
-    cv.polygon(rc, fill=(247, 240, 222), outline=GOLD_DARK)
-    draw_centered(cv, "sans_bold", 11, fcx, fcy - 7,
-                  "PASSAGE FEE PAID - 12 KRD", GOLD_DARK)
+    # neighbour visitor visa + round passage-fee stamp
+    cv.rect(546, 486, 900, 584, fill=PAPER, outline=NAVY, width=2)
+    draw_text(cv, "sans_bold", 11, 562, 494, "SELVANE - VISITOR VISA", NAVY)
+    draw_text(cv, "sans_bold", 10, 786, 496, "No. SLV 904 117", NAVY)
+    vfield(cv, 562, 512, "TYPE", "C - SINGLE ENTRY")
+    vfield(cv, 562, 535, "VALID FROM", "01 MAR 2024")
+    vfield(cv, 562, 558, "ISSUED AT", "PORT ANSELM, 20 FEB 2024")
+    vfield(cv, 742, 512, "DURATION OF STAY", "30 DAYS")
+    vfield(cv, 742, 535, "UNTIL", "31 MAY 2024")
+    vfield(cv, 742, 558, "FEE", "25 SLV")
+    draw_round_stamp(cv, 938, 530, 40, (150, 60, 40),
+                     [(8, "PASSAGE FEE"), (11, "PAID"), (13, "12 KRD")])
     # observations
-    draw_text(cv, "sans_bold", 10, 546, 466, "OBSERVATIONS", NAVY)
-    draw_text(cv, "serif", 12, 546, 482,
+    draw_text(cv, "sans_bold", 10, 546, 594, "OBSERVATIONS", NAVY)
+    draw_text(cv, "serif", 11, 640, 594,
               "Holder is exempt from coastal tolls on routes 1-9.", INK)
     draw_text(cv, "sans", 10, 962, 606, "05", GREY)
     return cv
