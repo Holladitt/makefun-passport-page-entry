@@ -11,8 +11,9 @@ holder Mara Elena Ilves, ferry captain of Port Anselm.
 Run `main.py` (Python 3.13, standard library only, no network). It
 writes the spread to `/output/entry.png` (1024x640, under 1 MiB):
 a data page with a photorealistic studio portrait, full holder details and a
-proper ICAO MRZ, plus a visa page with six neighbour stamps, a visitor
-visa and a dated Anselm Strait endorsement forming a plausible
+proper ICAO MRZ, plus a visa page with eight stamps (six neighbours
+plus Kalnara exit and entry), a visitor visa and a dated Anselm Strait
+endorsement forming a plausible
 ferry-hopping history, and the telling condition that the passport is
 valid for ferry routes only, not for air travel.
 

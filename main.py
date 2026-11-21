@@ -9,9 +9,9 @@ every run.
 Concept: the Republic of Kalnara, an archipelago that runs on ferries.
 Holder Mara Elena Ilves, ferry captain of Port Anselm. Her passport
 carries a proper ICAO MRZ, a photorealistic studio portrait, a
-bilingual masthead, six neighbour stamps that form a plausible
-ferry-hopping history after the issue date, a neighbour visitor visa,
-a dated Anselm Strait endorsement, and a round passage-fee stamp.
+bilingual masthead, eight stamps (six neighbours plus Kalnara exit/entry)
+that form a plausible ferry-hopping history after the issue date, a neighbour
+visitor visa, a dated Anselm Strait endorsement, and a round passage-fee stamp.
 """
 
 import math
@@ -459,26 +459,11 @@ def draw_stamp(cv, x0, y0, x1, y1, ang, col, country, kind, date, port):
         py = y0 + 3 + ((i * 53) % 7)
         qx, qy = _rot(px, py, cx, cy, ang)
         cv.disc(qx, qy, 1, col)
-    draw_centered(cv, "sans_bold", 14, cx, y0 + 10, country, col)
-    draw_centered(cv, "sans_bold", 11, cx, y0 + 32, kind, col)
-    draw_centered(cv, "sans_bold", 13, cx, y0 + 50, date, col)
-    draw_centered(cv, "sans", 9, cx, y0 + 71, port, col)
-
-
-def draw_signature(cv, x0, y0):
-    """Cursive scrawl reading as 'Mara Ilves', with a flourish loop."""
-    pts = [(0, 4), (3, -6), (6, -9), (9, -3), (11, 5), (13, 1), (15, -5),
-           (18, -7), (20, -1), (22, 5), (24, 2), (26, -3), (28, 0),
-           (30, 5), (32, 2), (34, -4), (36, -2), (38, 4), (41, -7),
-           (44, -10), (46, -4), (48, 3), (50, 5), (53, 1), (56, -5),
-           (59, -7), (61, -1), (63, 5), (65, 2), (67, -3), (69, 0),
-           (71, 5), (74, 1), (76, -4), (79, -3), (81, 2), (83, 5),
-           (86, 1), (88, -3), (91, 0), (93, 4), (96, 2)]
-    cv.polyline([(x0 + dx, y0 + dy) for dx, dy in pts], INK, 2)
-    cv.polyline([(x0 + 2, y0 - 4), (x0 + 6, y0 - 12), (x0 + 12, y0 - 10),
-                 (x0 + 12, y0 - 2), (x0 + 6, y0 - 4)], INK, 1)
-    cv.polyline([(x0 + 6, y0 + 12), (x0 + 40, y0 + 15), (x0 + 75, y0 + 12),
-                 (x0 + 100, y0 + 8)], INK, 1)
+    hh = y1 - y0
+    draw_centered(cv, "sans_bold", 14, cx, y0 + int(hh * 0.11), country, col)
+    draw_centered(cv, "sans_bold", 11, cx, y0 + int(hh * 0.36), kind, col)
+    draw_centered(cv, "sans_bold", 13, cx, y0 + int(hh * 0.57), date, col)
+    draw_centered(cv, "sans", 9, cx, y0 + int(hh * 0.80), port, col)
 
 
 def _circle(cv, cx, cy, r, col, width=2):
@@ -489,14 +474,123 @@ def _circle(cv, cx, cy, r, col, width=2):
     cv.polyline(pts, col, width)
 
 
-def draw_round_stamp(cv, cx, cy, r, col, lines):
+def draw_round_stamp(cv, cx, cy, r, col, lines, top=18):
     """Round fee stamp: double ring with centred lines of text."""
     _circle(cv, cx, cy, r, col, 2)
     _circle(cv, cx, cy, r - 6, col, 1)
-    y = cy - 18
+    y = cy - top
     for size, text in lines:
         draw_centered(cv, "sans_bold", size, cx, y, text, col)
         y += size + 5
+
+
+def _arc(cv, cx, cy, r, a0, a1, col, width=1):
+    """Draw part of a circle outline, angles in degrees."""
+    pts = []
+    a = a0
+    while a <= a1:
+        rad = math.radians(a)
+        pts.append((cx + r * math.cos(rad), cy + r * math.sin(rad)))
+        a += 6
+    cv.polyline(pts, col, width)
+
+
+def draw_waves(cv, x0, x1):
+    """Dense sine guilloche across a page (Altvarra-style)."""
+    for yb in range(30, 611, 14):
+        cv.sine(x0 + 16, x0 + 472, yb, 5, 80, GUILL, 1)
+
+
+def draw_rosette(cv, cx, cy):
+    """Concentric guilloche circles + one dashed ring."""
+    for r in (55, 66, 77, 88, 99, 110):
+        _circle(cv, cx, cy, r, GUILL, 1)
+    for a0 in range(0, 360, 24):
+        _arc(cv, cx, cy, 44, a0, a0 + 12, GUILL, 1)
+
+
+def draw_barcode(cv, x, y, w, h, text):
+    """Deterministic barcode strip: 3 bars per character, tiled to w."""
+    units = []
+    for ch in text:
+        v = ord(ch)
+        for k in range(3):
+            bw = 1 + ((v >> (k * 2)) & 3) % 3
+            gap = 1 + ((v >> (k * 2 + 1)) & 1)
+            units.append((bw, gap))
+    bx = x
+    while bx < x + w:
+        for bw, gap in units:
+            if bx >= x + w:
+                break
+            cv.rect(bx, y, min(bx + bw - 1, x + w - 1), y + h, fill=INK)
+            bx += bw + gap
+
+
+def _catmull(pts, samples=10):
+    """Catmull-Rom spline through pts -> smooth flowing polyline."""
+    out = []
+    p = [pts[0]] + list(pts) + [pts[-1]]
+    for i in range(len(p) - 3):
+        p0, p1, p2, p3 = p[i], p[i + 1], p[i + 2], p[i + 3]
+        for j in range(samples):
+            t = j / samples
+            t2, t3 = t * t, t * t * t
+            x = 0.5 * ((2 * p1[0]) + (-p0[0] + p2[0]) * t
+                       + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2
+                       + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3)
+            y = 0.5 * ((2 * p1[1]) + (-p0[1] + p2[1]) * t
+                       + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2
+                       + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)
+            out.append((x, y))
+    out.append(p[-2])
+    return out
+
+
+def draw_signature_cursive(cv, x0, y0):
+    """Hand-drawn cursive 'Mara Ilves' (smooth splines, not a zigzag)."""
+    mara = [(0, 2), (1, -6), (3, -14), (5, -17), (7, -13), (8, -4),
+            (9, 1), (11, -2), (12, -10), (14, -15), (16, -11), (17, -3),
+            (18, 1), (20, 0), (21, -5), (23, -8), (25, -8), (27, -4),
+            (27, 0), (26, 2), (24, 2), (22, 1), (29, 0), (30, -5),
+            (32, -8), (34, -7), (35, -3), (36, 1), (38, 0), (39, -5),
+            (41, -8), (43, -8), (45, -4), (45, 0), (44, 2), (42, 2),
+            (40, 1)]
+    ilves = [(52, -1), (53, -9), (55, -16), (57, -18), (58, -12),
+             (57, -3), (56, 1), (55, 3), (60, 0), (61, -8), (63, -15),
+             (65, -17), (66, -11), (66, -2), (65, 2), (68, 0), (69, 3),
+             (71, 4), (73, 0), (74, -4), (75, -6), (78, -1), (79, -5),
+             (81, -7), (83, -6), (84, -2), (83, 1), (81, 2), (87, -1),
+             (89, -5), (90, -6), (89, -2), (88, 1), (87, 3), (86, 5)]
+    flourish = [(2, 9), (30, 12), (70, 11), (105, 7), (120, 3)]
+    for stroke in (mara, ilves, flourish):
+        pts = [(x0 + dx, y0 + dy) for dx, dy in stroke]
+        cv.polyline(_catmull(pts), INK, 2)
+
+
+def draw_sheared_text(cv, font_name, size, x, y, text, col, shear=0.35):
+    """Italic-looking text by shearing each glyph (fallback signature)."""
+    base = round(size * 0.8)
+    px = float(x)
+    for ch in text:
+        code = ord(ch)
+        if code not in _FONTS[font_name]:
+            px += size * 0.25
+            continue
+        adv, ox, oy, _sw, _sh, pts = _scaled_glyph(font_name, size, code)
+        for dx, dy, cov in pts:
+            xx = int(px) + ox + dx + int(shear * (base - (oy + dy)))
+            yy = int(y) + oy + dy
+            if 0 <= xx < cv.w and 0 <= yy < cv.h:
+                i = (yy * cv.w + xx) * 3
+                if cov == 255:
+                    cv.pix[i], cv.pix[i + 1], cv.pix[i + 2] = col
+                else:
+                    cv.pix[i] = (col[0] * cov + cv.pix[i] * (255 - cov)) // 255
+                    cv.pix[i + 1] = (col[1] * cov + cv.pix[i + 1] * (255 - cov)) // 255
+                    cv.pix[i + 2] = (col[2] * cov + cv.pix[i + 2] * (255 - cov)) // 255
+        px += adv
+    return px
 
 
 # ---------------------------------------------------------------- layout
@@ -525,10 +619,9 @@ def build():
     for px0 in (14, 522):
         cv.rect(px0 + 5, 19, px0 + 483, 621, outline=NAVY, width=2)
         cv.rect(px0 + 10, 24, px0 + 478, 616, outline=GOLD, width=1)
-    # faint guilloche on both pages
-    for px0 in (14, 522):
-        for yb in (120, 210, 300, 390, 480, 570):
-            cv.sine(px0 + 16, px0 + 472, yb, 6, 90, GUILL, 1)
+    # dense guilloche waves on both pages (Altvarra-style)
+    draw_waves(cv, 14, 502)
+    draw_waves(cv, 522, 1010)
     # deterministic paper grain (drawn first, so it stays under the ink)
     _rnd = 12345
 
@@ -543,45 +636,54 @@ def build():
         if 502 <= nx <= 522:
             continue
         cv._set(nx, ny, (232, 225, 200) if _next() % 2 else (250, 244, 228))
-    # faint watermark anchor on the right page
-    draw_anchor(cv, 766, 545, 110, (228, 221, 198), 5)
+    # (right-page watermark anchor removed in v3: stamp grid is dense)
 
     # ---------------------------------------------------------- left page
-    draw_shield(cv, 56, 56, 34, NAVY)
-    draw_text(cv, "serif_bold", 23, 86, 32, "REPUBLIC OF KALNARA", INK)
-    draw_tracked(cv, "sans", 10, 88, 56, "KALNARAS REPUBLIKA",
+    # rosette + watermark number (drawn first, under the ink)
+    draw_rosette(cv, 258, 440)
+    draw_centered(cv, "sans", 30, 258, 465, "KAL041883", (232, 225, 200))
+    # centred emblem + masthead
+    _circle(cv, 258, 48, 16, NAVY, 2)
+    draw_anchor(cv, 258, 48, 20, NAVY, 2)
+    draw_centered(cv, "serif_bold", 22, 258, 70, "REPUBLIC OF KALNARA", INK)
+    draw_tracked(cv, "sans", 10, 152, 94, "KALNARAS REPUBLIKA",
                  GOLD_DARK, 12.5)
-    draw_tracked(cv, "sans", 11, 88, 71, "PASSPORT / PASPORT",
+    draw_tracked(cv, "sans", 11, 137, 108, "PASSPORT / PASPORT",
                  GOLD_DARK, 13.5)
-    cv.line(38, 88, 478, 88, GOLD, 2)
+    cv.line(38, 122, 478, 122, GOLD, 2)
     # photo (photorealistic studio portrait, composited from portrait.rgb)
-    cv.rect(38, 102, 188, 292, fill=WHITE)
-    blit_rgb(cv, portrait, 142, 182, 42, 106)
-    cv.rect(38, 102, 188, 292, outline=NAVY, width=2)
-    # data fields
+    cv.rect(38, 134, 188, 316, fill=WHITE)
+    blit_rgb(cv, portrait, 142, 182, 42, 138)
+    cv.rect(38, 134, 188, 316, outline=NAVY, width=2)
+    # cursive signature under the photo
+    draw_signature_cursive(cv, 40, 336)
+    draw_text(cv, "sans", 8, 40, 354, "SIGNATURE OF HOLDER", GREY)
+    # data fields (Indonesian / English bilingual labels)
     fx = 206
-    field(cv, fx, 102, "TYPE", "P", 14)
-    field(cv, fx + 56, 102, "CODE", "KAL", 14)
-    field(cv, fx + 126, 102, "No.", "KAL041883", 14)
-    field(cv, fx, 132, "SURNAME", "ILVES")
-    field(cv, fx, 162, "GIVEN NAMES", "MARA ELENA")
-    field(cv, fx, 192, "NATIONALITY", "KALNARAN")
-    field(cv, fx, 222, "DATE OF BIRTH", "14 MAR 1988")
-    field(cv, fx + 196, 222, "SEX", "F")
-    field(cv, fx, 252, "PLACE OF BIRTH", "PORT ANSELM, KALNARA")
-    field(cv, fx, 282, "DATE OF ISSUE", "02 JAN 2024")
-    field(cv, fx + 150, 282, "DATE OF EXPIRY", "02 JAN 2034")
-    field(cv, fx, 312, "AUTHORITY", "PORT ANSELM")
-    field(cv, fx, 342, "OCCUPATION", "FERRY CAPTAIN")
-    cv.line(38, 388, 478, 388, LGREY, 1)
-    # signature + seal
-    draw_signature(cv, 64, 424)
-    draw_text(cv, "sans", 8, 64, 446, "SIGNATURE OF HOLDER", GREY)
-    cv.ring(400, 425, 30, 24, NAVY)
-    draw_anchor(cv, 400, 418, 26, NAVY, 2)
-    draw_centered(cv, "sans_bold", 8, 400, 438, "KALNARA", NAVY)
-    # ghost portrait watermark between signature and seal
-    blit_rgb(cv, ghost, 70, 90, 245, 398)
+    field(cv, fx, 134, "TIPE / TYPE", "P", 14)
+    field(cv, fx + 56, 134, "KODE / CODE", "KAL", 14)
+    field(cv, fx + 126, 134, "NO. PASPOR / PASSPORT NO.", "KAL041883", 14)
+    field(cv, fx, 164, "NAMA KELUARGA / SURNAME", "ILVES")
+    field(cv, fx, 194, "NAMA DEPAN / GIVEN NAMES", "MARA ELENA")
+    field(cv, fx, 224, "KEWARGANEGARAAN / NATIONALITY", "KALNARAN")
+    field(cv, fx, 254, "TANGGAL LAHIR / DATE OF BIRTH", "14 MAR 1988")
+    field(cv, fx + 196, 254, "KELAMIN / SEX", "F")
+    field(cv, fx, 284, "TEMPAT LAHIR / PLACE OF BIRTH", "PORT ANSELM")
+    draw_text(cv, "sans", 8, 372, 284, "NO. PRIBADI / PERSONAL NO.", GREY)
+    draw_text(cv, "serif_bold", 13, 372, 295, "KAL-880314-07", INK)
+    field(cv, fx, 314, "TGL TERBIT / DATE OF ISSUE", "02 JAN 2024")
+    field(cv, fx + 150, 314, "TGL BERAKHIR / EXPIRY", "02 JAN 2034")
+    field(cv, fx, 344, "OTORITAS / AUTHORITY", "PORT ANSELM")
+    field(cv, fx, 374, "PEKERJAAN / OCCUPATION", "FERRY CAPTAIN")
+    # observations + ghost portrait
+    draw_text(cv, "sans_bold", 10, 38, 404, "OBSERVATIONS", NAVY)
+    text_block(cv, "serif", 12, 38, 418,
+               "Registered resident of the Anselm Tidal Ward (AT-1). Ferry "
+               "crossings of the Anselm Strait only in calm water, 1 MAY - "
+               "31 OCT; North Route closed 1 NOV - 30 APR. See endorsement "
+               "on page 5.",
+               INK, 360, 14)
+    blit_rgb(cv, ghost, 70, 90, 408, 398)
     # MRZ
     mrz1, mrz2 = build_mrz()
     cv.rect(38, 520, 478, 596, fill=PAPER_DIM, outline=NAVY, width=1)
@@ -593,9 +695,10 @@ def build():
     draw_text(cv, "serif_bold", 22, 546, 36, "VISAS", INK)
     draw_tracked(cv, "sans", 10, 546, 64, "FERRY ROUTES - COASTAL DISTRICTS",
                  GOLD_DARK, 12.0)
+    draw_text(cv, "sans", 10, 962, 36, "05", GREY)
     cv.line(546, 88, 986, 88, GOLD, 2)
     # endorsement box: dated, place-specific ferry rules
-    cv.rect(546, 96, 986, 198, fill=PAPER, outline=NAVY, width=2)
+    cv.rect(546, 96, 986, 196, fill=PAPER, outline=NAVY, width=2)
     draw_text(cv, "sans_bold", 11, 562, 104,
               "ENDORSEMENT 1 / 2024 - ANSELM STRAIT", NAVY)
     text_block(cv, "serif", 12, 562, 124,
@@ -605,40 +708,42 @@ def build():
                "storm season, 1 NOV - 30 APR. Valid with ferry licence "
                "F-1183.",
                INK, 408, 17)
-    stamps = [
-        (546, 206, -4, (36, 84, 160), "SELVANE", "ARRIVAL", "18 MAR 2024",
-         "PORT OF VELKIR"),
-        (768, 206, 3, (110, 60, 140), "DRAKMOOR", "DEPARTURE", "02 APR 2024",
-         "HARBOUR GATE"),
-        (546, 298, 5, (34, 110, 70), "ILYNDOR", "ARRIVAL", "21 JUN 2024",
-         "FERRY TERMINAL"),
-        (768, 298, -3, (150, 60, 40), "TARNOVIA", "DEPARTURE", "09 SEP 2024",
-         "NORTH PIER"),
-        (546, 390, 4, (30, 90, 120), "VESKARA", "ARRIVAL", "14 NOV 2024",
-         "SOUTH QUAY"),
-        (768, 390, -5, (120, 80, 40), "OSTARA", "DEPARTURE", "03 FEB 2025",
-         "EAST MOLE"),
-    ]
-    for x0, y0, ang, col, ctry, kind, date, port in stamps:
-        draw_stamp(cv, x0, y0, x0 + 200, y0 + 88, ang, col, ctry, kind,
-                   date, port)
-    # neighbour visitor visa + round passage-fee stamp
-    cv.rect(546, 486, 900, 584, fill=PAPER, outline=NAVY, width=2)
-    draw_text(cv, "sans_bold", 11, 562, 494, "SELVANE - VISITOR VISA", NAVY)
-    draw_text(cv, "sans_bold", 10, 786, 496, "No. SLV 904 117", NAVY)
-    vfield(cv, 562, 512, "TYPE", "C - SINGLE ENTRY")
-    vfield(cv, 562, 535, "VALID FROM", "01 MAR 2024")
-    vfield(cv, 562, 558, "ISSUED AT", "PORT ANSELM, 20 FEB 2024")
-    vfield(cv, 742, 512, "DURATION OF STAY", "30 DAYS")
-    vfield(cv, 742, 535, "UNTIL", "31 MAY 2024")
-    vfield(cv, 742, 558, "FEE", "25 SLV")
-    draw_round_stamp(cv, 938, 530, 40, (150, 60, 40),
-                     [(8, "PASSAGE FEE"), (11, "PAID"), (13, "12 KRD")])
-    # observations
-    draw_text(cv, "sans_bold", 10, 546, 594, "OBSERVATIONS", NAVY)
-    draw_text(cv, "serif", 11, 640, 594,
-              "Holder is exempt from coastal tolls on routes 1-9.", INK)
-    draw_text(cv, "sans", 10, 962, 606, "05", GREY)
+    # round passage-fee stamp overlapping the endorsement box corner
+    draw_round_stamp(cv, 945, 108, 36, (150, 60, 40),
+                     [(7, "PASS TOLL"), (10, "12 KRD"),
+                      (8, "PAID - ANSELM"), (7, "03 JUN 2024")])
+    # neighbour visitor visa sticker box
+    cv.rect(546, 204, 986, 292, fill=(232, 238, 222), outline=NAVY, width=2)
+    draw_text(cv, "sans_bold", 11, 562, 210, "SELVANE - VISITOR VISA", NAVY)
+    draw_text(cv, "sans_bold", 10, 850, 211, "No. SLV 904 117",
+              (150, 60, 40))
+    vfield(cv, 562, 224, "TYPE", "C - SINGLE ENTRY")
+    vfield(cv, 562, 240, "VALID FROM", "01 MAR 2024")
+    vfield(cv, 562, 256, "ISSUED AT", "PORT ANSELM, 20 FEB 2024")
+    vfield(cv, 768, 224, "DURATION OF STAY", "30 DAYS")
+    vfield(cv, 768, 240, "UNTIL", "31 MAY 2024")
+    vfield(cv, 768, 256, "FEE", "25 SLV")
+    draw_barcode(cv, 562, 279, 338, 8, "SLV904117")
+    # 8 stamps, 2-column grid, alternating shapes and ink colours
+    draw_stamp(cv, 546, 300, 746, 372, -3, (36, 84, 160), "KALNARA",
+               "EXIT", "15 MAR 2024", "PORT ANSELM")
+    draw_stamp(cv, 768, 300, 968, 372, 4, (24, 110, 170), "SELVANE",
+               "ARRIVAL", "18 MAR 2024", "PORT OF VELKIR")
+    draw_stamp(cv, 546, 380, 746, 452, 3, (110, 60, 140), "DRAKMOOR",
+               "DEPARTURE", "02 APR 2024", "HARBOUR GATE")
+    draw_round_stamp(cv, 868, 416, 34, (34, 110, 70),
+                     [(7, "ILYNDOR"), (9, "ADMITTED"), (8, "21 JUN 2024"),
+                      (6, "FERRY TERMINAL")], top=20)
+    draw_stamp(cv, 546, 460, 746, 532, -4, (150, 60, 40), "TARNOVIA",
+               "DEPARTURE", "09 SEP 2024", "NORTH PIER")
+    draw_stamp(cv, 768, 460, 968, 532, 5, (30, 90, 120), "VESKARA",
+               "ARRIVAL", "14 NOV 2024", "SOUTH QUAY")
+    draw_round_stamp(cv, 646, 576, 34, (120, 80, 40),
+                     [(7, "OSTARA"), (9, "DEPARTURE"), (8, "03 FEB 2025"),
+                      (6, "EAST MOLE")], top=20)
+    draw_stamp(cv, 768, 540, 968, 612, -3, (24, 48, 84), "KALNARA",
+               "ENTRY", "05 FEB 2025", "PORT ANSELM")
+    draw_text(cv, "sans", 10, 940, 606, "KAL041883", GREY)
     return cv
 
 
