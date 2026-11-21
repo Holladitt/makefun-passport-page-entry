@@ -6,12 +6,13 @@ software rasterizer, a DejaVu glyph atlas read from fonts.bin beside
 this file, and a hand-rolled PNG writer. Deterministic: same bytes
 every run.
 
-Concept: the Republic of Kalnara, an archipelago that runs on ferries.
-Holder Mara Elena Ilves, ferry captain of Port Anselm. Her passport
-carries a proper ICAO MRZ, a photorealistic studio portrait, a
-English-only masthead, eight stamps (six neighbours plus Kalnara exit/entry)
-that form a plausible ferry-hopping history after the issue date, a neighbour
-visitor visa, a dated Anselm Strait endorsement, and a round passage-fee stamp.
+Concept: the Republic of Teshmar, a desert republic that runs on
+salt-road caravans. Holder Selma Amara Hadri, caravan master of
+Qarasu. Her passport carries a proper ICAO MRZ, a photorealistic
+studio portrait, a bilingual masthead in the Kestrava manner, eight
+stamps (four neighbours plus Teshmar exit/entry) that form a plausible
+caravan history after the issue date, a neighbour visitor visa, a
+dated Salt Road endorsement, and a round caravan-toll stamp.
 """
 
 import math
@@ -27,6 +28,8 @@ DESK = (36, 42, 54)
 PAPER = (247, 240, 222)
 PAPER_DIM = (238, 230, 208)
 NAVY = (24, 48, 84)
+TEAL = (31, 78, 95)
+RED = (150, 60, 40)
 INK = (18, 38, 66)
 GOLD = (176, 138, 54)
 GOLD_DARK = (140, 108, 40)
@@ -373,10 +376,11 @@ def _check_digit(s):
 
 
 def build_mrz():
-    doc = "KAL041883"
-    nat = "KAL"
-    dob = "880314"
-    exp = "340102"
+    # ICAO TD3: document-number field is 9 chars, right-padded with '<'.
+    doc = "TS482913<"
+    nat = "TSM"
+    dob = "780817"
+    exp = "340204"
     sex = "F"
     personal = "<" * 14
     c1 = _check_digit(doc)
@@ -384,7 +388,7 @@ def build_mrz():
     c3 = _check_digit(exp)
     c4 = _check_digit(personal)
     comp = _check_digit(doc + c1 + dob + c2 + exp + c3 + personal + c4)
-    line1 = "P<KALILVES<<MARA<ELENA"
+    line1 = "P<TSMHADRI<<SELMA<AMARA"
     line1 = line1 + "<" * (44 - len(line1))
     line2 = (doc + c1 + nat + dob + c2 + sex + exp + c3 + personal + c4
              + comp)
@@ -410,6 +414,14 @@ def draw_anchor(cv, cx, cy, s, col, width=2):
     cv.polyline(pts, col, width)
     cv.line(cx - s * 0.34, arm_y, cx - s * 0.22, arm_y - s * 0.14, col, width)
     cv.line(cx + s * 0.34, arm_y, cx + s * 0.22, arm_y - s * 0.14, col, width)
+
+
+def draw_sun_emblem(cv, cx, cy, s, col):
+    """Sun over dunes in a circle (Teshmar cover emblem)."""
+    _circle(cv, cx, cy, 16, col, 2)
+    cv.disc(cx, cy - 9, 3, col)
+    cv.line(cx - 13, cy + 5, cx + 13, cy + 5, col, 2)
+    _arc(cv, cx, cy + 5, 7, 180, 360, col, 2)
 
 
 def draw_shield(cv, cx, cy, s, col):
@@ -548,24 +560,24 @@ def _catmull(pts, samples=10):
 
 
 def draw_signature_cursive(cv, x0, y0):
-    """Hand-drawn cursive 'Mara Ilves' (smooth splines, not a zigzag)."""
-    mara = [(0, 2), (1, -6), (3, -14), (5, -17), (7, -13), (8, -4),
-            (9, 1), (11, -2), (12, -10), (14, -15), (16, -11), (17, -3),
-            (18, 1), (20, 0), (21, -5), (23, -8), (25, -8), (27, -4),
-            (27, 0), (26, 2), (24, 2), (22, 1), (29, 0), (30, -5),
-            (32, -8), (34, -7), (35, -3), (36, 1), (38, 0), (39, -5),
-            (41, -8), (43, -8), (45, -4), (45, 0), (44, 2), (42, 2),
-            (40, 1)]
-    ilves = [(52, -1), (53, -9), (55, -16), (57, -18), (58, -12),
-             (57, -3), (56, 1), (55, 3), (60, 0), (61, -8), (63, -15),
-             (65, -17), (66, -11), (66, -2), (65, 2), (68, 0), (69, 3),
-             (71, 4), (73, 0), (74, -4), (75, -6), (78, -1), (79, -5),
-             (81, -7), (83, -6), (84, -2), (83, 1), (81, 2), (87, -1),
-             (89, -5), (90, -6), (89, -2), (88, 1), (87, 3), (86, 5)]
+    """Hand-drawn cursive 'S. A. Hadri' (smooth splines, not a zigzag)."""
+    s_cap = [(0, 3), (1, -3), (3, -10), (6, -14), (9, -13), (10, -8),
+             (8, -4), (5, -2), (4, 1), (6, 4), (9, 4), (11, 1), (12, -1)]
+    a_cap = [(18, 2), (19, -6), (21, -13), (23, -14), (24, -8),
+             (25, -1), (26, 2), (21, -6), (26, -6)]
+    hadri = [(34, 2), (35, -7), (36, -14), (37, -7), (38, 0), (39, -7),
+             (41, -13), (43, -12), (44, -5), (45, 1), (48, 0), (49, -6),
+             (51, -7), (53, -5), (53, 0), (52, 2), (50, 2), (56, 0),
+             (57, -7), (59, -13), (61, -13), (62, -7), (62, 0), (62, 5),
+             (65, 0), (66, -6), (68, -7), (70, -5), (70, 0), (73, -1),
+             (74, -7), (75, -7), (74, 0), (73, 2)]
     flourish = [(2, 9), (30, 12), (70, 11), (105, 7), (120, 3)]
-    for stroke in (mara, ilves, flourish):
+    for stroke in (s_cap, a_cap, hadri, flourish):
         pts = [(x0 + dx, y0 + dy) for dx, dy in stroke]
         cv.polyline(_catmull(pts), INK, 2)
+    cv.disc(x0 + 14, y0 + 2, 1, INK)
+    cv.disc(x0 + 28, y0 + 2, 1, INK)
+    cv.disc(x0 + 74, y0 - 11, 1, INK)
 
 
 def draw_sheared_text(cv, font_name, size, x, y, text, col, shear=0.35):
@@ -641,12 +653,13 @@ def build():
     # ---------------------------------------------------------- left page
     # rosette + watermark number (drawn first, under the ink)
     draw_rosette(cv, 258, 440)
-    draw_centered(cv, "sans", 30, 258, 465, "KAL041883", (232, 225, 200))
-    # centred emblem + masthead
-    _circle(cv, 258, 48, 16, NAVY, 2)
-    draw_anchor(cv, 258, 48, 20, NAVY, 2)
-    draw_centered(cv, "serif_bold", 22, 258, 70, "REPUBLIC OF KALNARA", INK)
-    draw_tracked(cv, "sans", 11, 204, 94, "PASSPORT",
+    draw_centered(cv, "sans", 30, 258, 465, "TS482913", (232, 225, 200))
+    # centred emblem + masthead (Kestrava manner: teal serif, red line)
+    draw_sun_emblem(cv, 258, 48, 20, TEAL)
+    draw_centered(cv, "serif_bold", 22, 258, 70, "REPUBLIC OF TESHMAR",
+                  TEAL)
+    draw_centered(cv, "serif", 11, 258, 94, "TESHMARA JUMHURIYAT", RED)
+    draw_tracked(cv, "sans", 11, 157, 108, "SAFAR • PASSPORT",
                  GOLD_DARK, 13.5)
     cv.line(38, 122, 478, 122, GOLD, 2)
     # photo (photorealistic studio portrait, composited from portrait.rgb)
@@ -655,31 +668,29 @@ def build():
     cv.rect(38, 134, 188, 316, outline=NAVY, width=2)
     # cursive signature under the photo
     draw_signature_cursive(cv, 40, 336)
-    draw_text(cv, "sans", 8, 40, 354, "SIGNATURE OF HOLDER", GREY)
-    # data fields (English labels)
+    draw_text(cv, "sans", 8, 40, 354, "TAWQI / SIGNATURE OF HOLDER", GREY)
+    # data fields (bilingual labels, invented / English)
     fx = 206
-    field(cv, fx, 134, "TYPE", "P", 14)
-    field(cv, fx + 56, 134, "CODE", "KAL", 14)
-    field(cv, fx + 126, 134, "PASSPORT NO.", "KAL041883", 14)
-    field(cv, fx, 164, "SURNAME", "ILVES")
-    field(cv, fx, 194, "GIVEN NAMES", "MARA ELENA")
-    field(cv, fx, 224, "NATIONALITY", "KALNARAN")
-    field(cv, fx, 254, "DATE OF BIRTH", "14 MAR 1988")
-    field(cv, fx + 196, 254, "SEX", "F")
-    field(cv, fx, 284, "PLACE OF BIRTH", "PORT ANSELM")
-    draw_text(cv, "sans", 8, 372, 284, "PERSONAL NO.", GREY)
-    draw_text(cv, "serif_bold", 13, 372, 295, "KAL-880314-07", INK)
-    field(cv, fx, 314, "DATE OF ISSUE", "02 JAN 2024")
-    field(cv, fx + 150, 314, "DATE OF EXPIRY", "02 JAN 2034")
-    field(cv, fx, 344, "AUTHORITY", "PORT ANSELM")
-    field(cv, fx, 374, "OCCUPATION", "FERRY CAPTAIN")
+    field(cv, fx, 134, "NAW / TYPE", "P", 14)
+    field(cv, fx + 56, 134, "KUD / CODE", "TSM", 14)
+    field(cv, fx + 126, 134, "SAFAR NR. / PASSPORT NO.", "TS482913", 14)
+    field(cv, fx, 164, "NASAB / SURNAME", "HADRI")
+    field(cv, fx, 194, "ISM / GIVEN NAMES", "SELMA AMARA")
+    field(cv, fx, 224, "JINSIYA / NATIONALITY", "TESHMARI")
+    field(cv, fx, 254, "MILAD / DATE OF BIRTH", "17 AUG 1978")
+    field(cv, fx + 196, 254, "JINS / SEX", "F")
+    field(cv, fx, 284, "MAWLID / PLACE OF BIRTH", "QARASU")
+    draw_text(cv, "sans", 8, 372, 284, "RAQAM / PERSONAL NO.", GREY)
+    draw_text(cv, "serif_bold", 13, 372, 295, "780817-4412", INK)
+    field(cv, fx, 314, "SUDUR / DATE OF ISSUE", "05 FEB 2024")
+    field(cv, fx + 150, 314, "INTIHA / DATE OF EXPIRY", "04 FEB 2034")
+    field(cv, fx, 344, "SULTA / AUTHORITY", "PASSPORT OFFICE, QARASU")
+    field(cv, fx, 374, "MIHNA / OCCUPATION", "CARAVAN MASTER")
     # observations + ghost portrait
-    draw_text(cv, "sans_bold", 10, 38, 404, "OBSERVATIONS", NAVY)
+    draw_text(cv, "sans_bold", 10, 38, 404, "MULAHAZA / OBSERVATIONS", NAVY)
     text_block(cv, "serif", 12, 38, 418,
-               "Registered resident of the Anselm Tidal Ward (AT-1). Ferry "
-               "crossings of the Anselm Strait only in calm water, 1 MAY - "
-               "31 OCT; North Route closed 1 NOV - 30 APR. See endorsement "
-               "on page 5.",
+               "Registered resident of the Teshmar Salt Road (SR-2). Land "
+               "departure by the Salt Road only; see endorsement on page 3.",
                INK, 360, 14)
     blit_rgb(cv, ghost, 70, 90, 408, 398)
     # MRZ
@@ -687,61 +698,61 @@ def build():
     cv.rect(38, 520, 478, 596, fill=PAPER_DIM, outline=NAVY, width=1)
     draw_tracked(cv, "sans", 15, 52, 532, mrz1, INK, 9.4)
     draw_tracked(cv, "sans", 15, 52, 560, mrz2, INK, 9.4)
-    draw_text(cv, "sans", 10, 38, 606, "04", GREY)
+    draw_text(cv, "sans", 10, 38, 606, "02", GREY)
 
     # --------------------------------------------------------- right page
-    draw_text(cv, "serif_bold", 22, 546, 36, "VISAS", INK)
-    draw_tracked(cv, "sans", 10, 546, 64, "FERRY ROUTES - COASTAL DISTRICTS",
+    draw_text(cv, "serif_bold", 22, 546, 36, "DUKHUL • VIZA • VISAS",
+              TEAL)
+    draw_tracked(cv, "sans", 10, 546, 64, "SALT ROAD - DESERT CROSSINGS",
                  GOLD_DARK, 12.0)
-    draw_text(cv, "sans", 10, 962, 36, "05", GREY)
+    draw_text(cv, "sans", 10, 962, 36, "03", GREY)
     cv.line(546, 88, 986, 88, GOLD, 2)
-    # endorsement box: dated, place-specific ferry rules
-    cv.rect(546, 96, 986, 196, fill=PAPER, outline=NAVY, width=2)
+    # endorsement box: dated, place-specific caravan rules
+    cv.rect(546, 96, 986, 192, fill=PAPER, outline=NAVY, width=2)
     draw_text(cv, "sans_bold", 11, 562, 104,
-              "ENDORSEMENT 1 / 2024 - ANSELM STRAIT", NAVY)
-    text_block(cv, "serif", 12, 562, 124,
-               "This passport is valid for ferry routes only. Crossings "
-               "of the Anselm Strait are permitted only in calm water, "
-               "1 MAY - 31 OCT. The North Route is closed during the "
-               "storm season, 1 NOV - 30 APR. Valid with ferry licence "
-               "F-1183.",
-               INK, 408, 17)
-    # round passage-fee stamp overlapping the endorsement box corner
+              "ENDORSEMENT 1 / 2024 - SALT ROAD", NAVY)
+    text_block(cv, "serif", 10, 562, 124,
+               "This passport is valid for Salt Road travel only. Caravan "
+               "crossings are permitted only in daylight, 1 MAR - 30 NOV. "
+               "The Salt Road is closed in sandstorm season, 1 DEC - 28 "
+               "FEB. Valid with licence C-4417.",
+               INK, 340, 14)
+    # round caravan-toll stamp overlapping the endorsement box corner
     draw_round_stamp(cv, 945, 108, 36, (150, 60, 40),
-                     [(7, "PASS TOLL"), (10, "12 KRD"),
-                      (7, "PAID - ANSELM"), (7, "03 JUN 2024")])
+                     [(7, "CARAVAN TOLL"), (10, "9 TKD"),
+                      (7, "PAID - QARASU"), (7, "04 MAR 2024")])
     # neighbour visitor visa sticker box
-    cv.rect(546, 204, 986, 292, fill=(232, 238, 222), outline=NAVY, width=2)
-    draw_text(cv, "sans_bold", 11, 562, 210, "SELVANE - VISITOR VISA", NAVY)
-    draw_text(cv, "sans_bold", 10, 850, 211, "No. SLV 904 117",
+    cv.rect(546, 200, 986, 288, fill=(232, 238, 222), outline=NAVY, width=2)
+    draw_text(cv, "sans_bold", 11, 562, 206, "DARQESH - VISITOR VISA", NAVY)
+    draw_text(cv, "sans_bold", 10, 850, 207, "No. DQ 3105 2214",
               (150, 60, 40))
-    vfield(cv, 562, 222, "TYPE", "C - SINGLE ENTRY")
-    vfield(cv, 562, 242, "VALID FROM", "01 MAR 2024")
-    vfield(cv, 562, 262, "ISSUED AT", "PORT ANSELM, 20 FEB 2024")
-    vfield(cv, 768, 222, "DURATION OF STAY", "30 DAYS")
-    vfield(cv, 768, 242, "UNTIL", "31 MAY 2024")
-    vfield(cv, 768, 262, "FEE", "25 SLV")
-    draw_barcode(cv, 562, 283, 338, 8, "SLV904117")
+    vfield(cv, 562, 218, "TYPE", "C - SINGLE ENTRY")
+    vfield(cv, 562, 238, "VALID FROM", "12 AUG 2024")
+    vfield(cv, 562, 258, "ISSUED AT", "QARASU, 28 JUL 2024")
+    vfield(cv, 768, 218, "DURATION OF STAY", "15 DAYS")
+    vfield(cv, 768, 238, "UNTIL", "11 SEP 2024")
+    vfield(cv, 768, 258, "FEE", "30 DQD")
+    draw_barcode(cv, 562, 279, 338, 8, "DQ31052214")
     # 8 stamps, 2-column grid, alternating shapes and ink colours
-    draw_stamp(cv, 546, 300, 746, 372, -3, (36, 84, 160), "KALNARA",
-               "EXIT", "15 MAR 2024", "PORT ANSELM")
-    draw_stamp(cv, 768, 300, 968, 372, 4, (24, 110, 170), "SELVANE",
-               "ARRIVAL", "18 MAR 2024", "PORT OF VELKIR")
-    draw_stamp(cv, 546, 380, 746, 452, 3, (110, 60, 140), "DRAKMOOR",
-               "DEPARTURE", "02 APR 2024", "HARBOUR GATE")
+    draw_stamp(cv, 546, 300, 746, 372, -3, (36, 84, 160), "TESHMAR",
+               "DEPARTED", "12 AUG 2024", "SALT ROAD GATE 1")
+    draw_stamp(cv, 768, 300, 968, 372, 4, (24, 110, 170), "DARQESH",
+               "ARRIVAL", "15 AUG 2024", "MERID GATE")
+    draw_stamp(cv, 546, 380, 746, 452, 3, (110, 60, 140), "DARQESH",
+               "DEPARTURE", "28 AUG 2024", "MERID GATE")
     draw_round_stamp(cv, 868, 416, 34, (34, 110, 70),
-                     [(7, "ILYNDOR"), (8, "ADMITTED"), (7, "21 JUN 2024"),
-                      (6, "FERRY TERMINAL")], top=20)
-    draw_stamp(cv, 546, 460, 746, 532, -4, (150, 60, 40), "TARNOVIA",
-               "DEPARTURE", "09 SEP 2024", "NORTH PIER")
-    draw_stamp(cv, 768, 460, 968, 532, 5, (30, 90, 120), "VESKARA",
-               "ARRIVAL", "14 NOV 2024", "SOUTH QUAY")
-    draw_round_stamp(cv, 640, 578, 34, (120, 80, 40),
-                     [(7, "OSTARA"), (8, "DEPARTURE"), (7, "03 FEB 2025"),
-                      (6, "EAST MOLE")], top=20)
-    draw_stamp(cv, 768, 540, 968, 612, -3, (24, 48, 84), "KALNARA",
-               "ENTRY", "05 FEB 2025", "PORT ANSELM")
-    draw_text(cv, "sans", 10, 940, 606, "KAL041883", GREY)
+                     [(7, "KARUN"), (8, "ADMITTED"), (7, "02 SEP 2024"),
+                      (6, "DESERT POST")], top=20)
+    draw_stamp(cv, 546, 460, 746, 532, -4, (150, 60, 40), "KARUN",
+               "DEPARTURE", "16 SEP 2024", "DESERT POST")
+    draw_stamp(cv, 768, 460, 968, 532, 5, (30, 90, 120), "SARUN",
+               "ENTRY", "11 MAR 2025", "CARAVAN PERMIT")
+    draw_round_stamp(cv, 646, 576, 34, (24, 110, 170),
+                     [(7, "TESHMAR"), (8, "ENTRY"), (7, "20 SEP 2024"),
+                      (6, "SALT ROAD")], top=20)
+    draw_stamp(cv, 768, 540, 968, 612, -3, (24, 48, 84), "SARUN",
+               "EXIT", "29 MAR 2025", "SALT ROAD")
+    draw_text(cv, "sans", 10, 940, 606, "TS482913", GREY)
     return cv
 
 
